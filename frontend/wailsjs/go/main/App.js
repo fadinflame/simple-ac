@@ -34,10 +34,6 @@ export function GetVPNLogs() {
   return window['go']['main']['App']['GetVPNLogs']();
 }
 
-export function InitSystray(arg1) {
-  return window['go']['main']['App']['InitSystray'](arg1);
-}
-
 export function IsConnected() {
   return window['go']['main']['App']['IsConnected']();
 }

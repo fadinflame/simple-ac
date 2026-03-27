@@ -169,6 +169,12 @@ func (c *Client) executeCommand(args []string, input string, silent bool, timeou
 	buf := make([]byte, 1024)
 	for {
 		n, err := stdout.Read(buf)
+		if n == 0 && err == nil {
+			// Prevent tight loop if stdout.Read somehow returns non-blocking 0 bytes
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
+
 		if n > 0 {
 			chunk := string(buf[:n])
 			fullOutput.WriteString(chunk)

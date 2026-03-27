@@ -1,10 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
-
-	"context"
 
 	"github.com/fadinflame/simple-ac/config"
 	"github.com/fadinflame/simple-ac/updater"
@@ -31,7 +30,6 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	go a.InitSystray(ctx)
 	runtime.WindowShow(ctx)
 	runtime.WindowCenter(ctx)
 
