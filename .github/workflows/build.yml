@@ -1,0 +1,108 @@
+name: Build SimpleAC
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            artifact_name: SimpleAC-macOS
+          - os: windows-latest
+            artifact_name: SimpleAC-Windows
+          - os: ubuntu-latest
+            artifact_name: SimpleAC-Linux
+
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Determine Version
+        id: version
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            VERSION=${VERSION#refs/tags/}
+          else
+            VERSION="dev-${GITHUB_SHA::7}"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Application
+        shell: bash
+        run: |
+          # Ensure Wails is in PATH
+          export PATH=$PATH:$(go env GOPATH)/bin
+          # Run Wails build with ldflags
+          wails build -ldflags "-X 'main.Version=${{ steps.version.outputs.VERSION }}'"
+
+      - name: Package Artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          # ZIP binary with version
+          Compress-Archive -Path build/bin/SimpleAC.exe -DestinationPath build/bin/SimpleAC-Windows-${{ steps.version.outputs.VERSION }}.zip
+
+      - name: Package Artifacts (macOS / Linux)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          cd build/bin/
+          VERSION=${{ steps.version.outputs.VERSION }}
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            zip -r SimpleAC-macOS-$VERSION.zip SimpleAC.app
+          else
+            # Linux usually just binary
+            tar -czvf SimpleAC-Linux-$VERSION.tar.gz SimpleAC
+          fi
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            build/bin/*.zip
+            build/bin/*.tar.gz
+            build/bin/*.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/bin/*.zip
+            build/bin/*.tar.gz
