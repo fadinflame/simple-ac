@@ -106,9 +106,11 @@
 </div>
 
 <style>
+    :global(html),
     :global(body) {
         margin: 0;
         background: var(--bg-app);
+        overscroll-behavior: none;
         font-family:
             "Inter",
             system-ui,
