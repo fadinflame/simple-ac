@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/fadinflame/simple-ac/config"
@@ -115,9 +116,24 @@ func (a *App) Unlock(password string) (bool, error) {
 	return true, nil
 }
 
-// CheckConfig returns true if the main config exists
+// CheckConfig returns true only if the main config exists AND the credentials
+// file it points to is still present, so a missing/moved creds file falls
+// back to the setup screen instead of an unusable password screen.
 func (a *App) CheckConfig() bool {
-	return a.ConfigManager.ConfigExists()
+	if !a.ConfigManager.ConfigExists() {
+		return false
+	}
+
+	cfg := a.ConfigManager.GetConfig()
+	if cfg.CredentialsFilePath == "" {
+		return false
+	}
+
+	if _, err := os.Stat(cfg.CredentialsFilePath); err != nil {
+		return false
+	}
+
+	return true
 }
 
 // VPN Wrapper actions
