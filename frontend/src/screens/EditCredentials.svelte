@@ -107,6 +107,7 @@
         {:else if loadError}
             <p class="status-text error-text">{loadError}</p>
         {:else}
+        <div class="card">
             <div class="row">
                 <div class="form-group">
                     <label for="server">Server (Domain)</label>
@@ -310,6 +311,7 @@
                     <span class="error-text">{saveError}</span>
                 {/if}
             </div>
+        </div>
         {/if}
     </main>
 
@@ -344,7 +346,7 @@
         display: grid;
         grid-template-columns: 32px 1fr 32px;
         align-items: center;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1rem;
         flex-shrink: 0;
     }
 
@@ -354,6 +356,8 @@
 
     main {
         flex: 1;
+        display: flex;
+        flex-direction: column;
         overflow-y: auto;
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -361,6 +365,17 @@
 
     main::-webkit-scrollbar {
         display: none;
+    }
+
+    .card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-card);
+        padding: 1.1rem 1.25rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        color: var(--text-main);
     }
 
     .status-text {
@@ -377,8 +392,8 @@
     .form-group {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
-        margin-bottom: 1rem;
+        gap: 0.35rem;
+        margin-bottom: 0.85rem;
         flex: 1;
     }
 
@@ -401,7 +416,7 @@
     }
 
     input {
-        padding: 0.75rem;
+        padding: 0.65rem 0.75rem;
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         font-size: 0.9rem;
@@ -514,7 +529,7 @@
     .divider {
         height: 1px;
         background: var(--border);
-        margin: 0.5rem 0 1.25rem;
+        margin: 0.35rem 0 1rem;
     }
 
     .hint-text {
