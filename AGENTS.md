@@ -33,11 +33,11 @@ flowchart LR
         App[App.svelte] --> Screens
         App -- EventsOn --> Runtime
     end
-    Bindings[frontend/wailsjs/go/main/App.js\n(auto-generated)]
+    Bindings["frontend/wailsjs/go/main/App.js<br/>(auto-generated)"]
     Frontend -- calls exported App methods --> Bindings
     Bindings -- IPC --> Backend
     subgraph Backend [Go]
-        AppGo[app.go: App struct\nexposed methods] --> ConfigMgr[config/manager.go]
+        AppGo["app.go: App struct<br/>exposed methods"] --> ConfigMgr[config/manager.go]
         AppGo --> VPNClient[vpn/client.go]
         AppGo --> Updater[updater/updater.go]
         ConfigMgr --> Security[security/crypto.go]
