@@ -27,6 +27,7 @@
     import Main from "./screens/Main.svelte";
     import Logs from "./screens/Logs.svelte";
     import Settings from "./screens/Settings.svelte";
+    import EditCredentials from "./screens/EditCredentials.svelte";
     import { AppState } from "./constants.js";
 
     const MAX_LOG_SIZE = 200000; // Limit for UI performance (chars)
@@ -105,6 +106,7 @@
         [AppState.PASSWORD]: Password,
         [AppState.MAIN]: Main,
         [AppState.LOGS]: Logs,
+        [AppState.EDIT_CREDENTIALS]: EditCredentials,
         [AppState.SETTINGS]: Settings,
     };
 </script>

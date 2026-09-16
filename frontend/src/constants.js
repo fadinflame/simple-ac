@@ -4,4 +4,5 @@ export const AppState = Object.freeze({
     MAIN: 'MAIN',
     LOGS: 'LOGS',
     SETTINGS: 'SETTINGS',
+    EDIT_CREDENTIALS: 'EDIT_CREDENTIALS',
 });

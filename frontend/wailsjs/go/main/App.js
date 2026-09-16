@@ -30,6 +30,10 @@ export function GetConfig() {
   return window['go']['main']['App']['GetConfig']();
 }
 
+export function GetCredentials() {
+  return window['go']['main']['App']['GetCredentials']();
+}
+
 export function GetVPNLogs() {
   return window['go']['main']['App']['GetVPNLogs']();
 }
@@ -68,4 +72,8 @@ export function Unlock(arg1) {
 
 export function UpdateConfig(arg1) {
   return window['go']['main']['App']['UpdateConfig'](arg1);
+}
+
+export function UpdateCredentials(arg1, arg2) {
+  return window['go']['main']['App']['UpdateCredentials'](arg1, arg2);
 }

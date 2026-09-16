@@ -54,8 +54,8 @@ flowchart LR
 | Path | Responsibility |
 |---|---|
 | [main.go](main.go) | Wails app bootstrap: window options (450x600 fixed), embeds `frontend/dist`, binds `App` struct, `Version` var (set via `-ldflags -X main.Version=x.y.z` in CI, default `"dev"`). |
-| [app.go](app.go) | **The entire backend API surface exposed to the frontend.** Thin orchestration layer: owns `ConfigManager` + `VPNClient`, wires Go→JS events (`vpn-log`, `app-log`, `connection-processing`). No business logic lives here beyond wiring. |
-| [config/config.go](config/config.go) | `Config` struct = non-secret app settings (`credentials_file_path`, `show_console_log`). Plain JSON, unencrypted. |
+| [app.go](app.go) | **The entire backend API surface exposed to the frontend.** Thin orchestration layer: owns `ConfigManager` + `VPNClient`, wires Go→JS events (`vpn-log`, `app-log`, `connection-processing`). No business logic lives here beyond wiring. Includes `GetCredentials()` (returns the live in-memory creds for pre-filling the edit form) and `UpdateCredentials(creds, masterPassword)` (re-encrypts to the existing `CredentialsFilePath`, verifying `masterPassword` by decrypting the current file first). |
+| [config/config.go](config/config.go) | `Config` struct = non-secret app settings (`credentials_file_path`). Plain JSON, unencrypted. |
 | [config/credentials.go](config/credentials.go) | `Credentials` struct = secrets (`server`, `username`, `password`, `group` int, `otp_secret`). This is what gets encrypted. |
 | [config/manager.go](config/manager.go) | Persistence layer. `Config` → `~/.simple-ac/config.json` (macOS/Linux) or `%APPDATA%/simple-ac/config.json` (Windows), plaintext, mode 0600. `Credentials` → user-chosen path, AES-encrypted blob via `security` package. |
 | [security/crypto.go](security/crypto.go) | `Encrypt`/`Decrypt`: AES-256-GCM, key = PBKDF2-SHA256(password, salt, **100000** iterations, 32 bytes). Blob layout: `[16-byte salt][12-byte GCM nonce][ciphertext]`. |
@@ -63,11 +63,12 @@ flowchart LR
 | [updater/updater.go](updater/updater.go) | Hits `GET https://api.github.com/repos/fadinflame/simple-ac/releases/latest`, compares `tag_name` (strip `v` prefix) against `Version`, returns `*Release` if newer, else `nil`. No semver comparison — pure string inequality. |
 | [frontend/src/App.svelte](frontend/src/App.svelte) | Root component. Screen router (`{#key $currentScreen}` + `<svelte:component>`), global event listeners, startup sequence (load logs/version, decide Setup vs Password screen), disables context menu. |
 | [frontend/src/store.js](frontend/src/store.js) | All shared Svelte writable stores + `navigate()`, `checkConnectionStatus()`, connection timer helpers, `refreshConfig()`. **Single source of truth for cross-screen state.** |
-| [frontend/src/constants.js](frontend/src/constants.js) | `AppState` enum: `SETUP, PASSWORD, MAIN, LOGS, SETTINGS`. |
+| [frontend/src/constants.js](frontend/src/constants.js) | `AppState` enum: `SETUP, PASSWORD, MAIN, LOGS, SETTINGS, EDIT_CREDENTIALS`. |
 | [frontend/src/screens/Setup.svelte](frontend/src/screens/Setup.svelte) | 2-step wizard: (1) VPN credentials (server/username/password/group/OTP secret), (2) choose encrypted config file path + master password → calls `SaveConfig`. |
 | [frontend/src/screens/Password.svelte](frontend/src/screens/Password.svelte) | Master-password unlock screen shown on every launch if config exists. Calls `Unlock(password)`. |
 | [frontend/src/screens/Main.svelte](frontend/src/screens/Main.svelte) | Connect/disconnect button, connection timer display, navigation to Logs/Settings. |
-| [frontend/src/screens/Settings.svelte](frontend/src/screens/Settings.svelte) | Theme toggle, update check (`CheckForUpdates`), "reset" button. **Note:** reset only navigates to `AppState.SETUP`; it does NOT delete the existing encrypted credentials file or `config.json` — re-running setup will overwrite them if the same path is chosen. |
+| [frontend/src/screens/Settings.svelte](frontend/src/screens/Settings.svelte) | Theme toggle, update check (`CheckForUpdates`), "Account" section with an "Edit" button navigating to `AppState.EDIT_CREDENTIALS`, "reset" button. **Note:** reset only navigates to `AppState.SETUP`; it does NOT delete the existing encrypted credentials file or `config.json` — re-running setup will overwrite them if the same path is chosen. |
+| [frontend/src/screens/EditCredentials.svelte](frontend/src/screens/EditCredentials.svelte) | Edit VPN credentials in place (reached from Settings). On mount, loads current creds via `GetCredentials()` to pre-fill the form. Password/OTP secret inputs are masked (`type="password"`) by default with a per-field hover-revealed "eye" button that toggles plaintext visibility client-side (no extra IPC round-trip). Saving requires re-entering the master password and calls `UpdateCredentials(creds, masterPassword)`, always writing back to the original `CredentialsFilePath` (no path picker here). Navigates back to `AppState.SETTINGS` on success or cancel. |
 | [frontend/src/screens/Logs.svelte](frontend/src/screens/Logs.svelte) | Tabbed viewer for VPN CLI raw output vs. app-level log messages (both fed by Go events, capped client-side at 200000 chars). |
 | [frontend/wailsjs/](frontend/wailsjs/) | **Auto-generated** Wails v2 bindings (`go/main/App.js/.d.ts`, `runtime/runtime.js`). Regenerate via `wails build`/`wails dev` after changing `App` method signatures. Committed to git. |
 | [frontend/bindings/](frontend/bindings/) | **Stale/unused leftover**, looks like Wails v3-style bindings for a differently-named module (`fadinflame/easyconnect`). Not imported anywhere in `frontend/src`. Ignore it; don't confuse it with `frontend/wailsjs/` which is the one actually used. |
@@ -90,6 +91,8 @@ flowchart LR
 **Connect/Disconnect**: `App.Connect()`/`Disconnect()` → sets `isConnecting` flag (emits `connection-processing` event so UI can disable buttons across screens) → delegates to `vpn.Client`.
 
 **Lock**: `App.Lock()` clears `VPNClient` from memory, disconnects, stops its goroutine — purges secrets from RAM without exiting the app. Caller (`Main.svelte` `lockApp()`) then navigates to `AppState.PASSWORD`; the Go method itself does not push a navigation event.
+
+**Settings → Edit Credentials**: `EditCredentials.svelte` `onMount` → `App.GetCredentials()` (reads from the live `vpn.Client`, requires it to be non-nil, i.e. app must be unlocked) → user edits fields, optionally reveals password/OTP secret via the per-field toggle → `App.UpdateCredentials(creds, masterPassword)` → `ConfigManager.LoadCredentials` (verify password against existing file) → `ConfigManager.SaveCredentials` (re-encrypt, same path as before) → `setVPNClient(&creds)` (swaps the live client, restarting its reconcile loop) → navigate back to `AppState.SETTINGS`.
 
 ## 6. `vpn.Client` internals ([vpn/client.go](vpn/client.go))
 

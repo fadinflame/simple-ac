@@ -111,6 +111,25 @@
             </section>
 
             <section>
+                <h2 class="section-title">Account</h2>
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <span class="settings-label">VPN Credentials</span>
+                        <span class="settings-desc"
+                            >Update server, login and OTP secret</span
+                        >
+                    </div>
+                    <button
+                        class="btn btn-secondary btn-sm"
+                        on:click={() =>
+                            ($currentScreen = AppState.EDIT_CREDENTIALS)}
+                    >
+                        Edit
+                    </button>
+                </div>
+            </section>
+
+            <section>
                 <h2 class="section-title">About</h2>
                 <div class="settings-item">
                     <div class="settings-info">

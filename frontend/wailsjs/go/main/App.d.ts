@@ -17,6 +17,8 @@ export function GetAppVersion():Promise<string>;
 
 export function GetConfig():Promise<config.Config>;
 
+export function GetCredentials():Promise<config.Credentials>;
+
 export function GetVPNLogs():Promise<string>;
 
 export function IsConnected():Promise<boolean>;
@@ -36,3 +38,5 @@ export function SyncStatus():Promise<boolean>;
 export function Unlock(arg1:string):Promise<boolean>;
 
 export function UpdateConfig(arg1:config.Config):Promise<void>;
+
+export function UpdateCredentials(arg1:config.Credentials,arg2:string):Promise<void>;

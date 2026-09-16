@@ -86,6 +86,40 @@ func (a *App) GetConfig() *config.Config {
 	return a.ConfigManager.GetConfig()
 }
 
+// GetCredentials returns the currently loaded VPN credentials from memory
+func (a *App) GetCredentials() (*config.Credentials, error) {
+	client := a.getVPNClient()
+	if client == nil {
+		return nil, fmt.Errorf("no credentials loaded")
+	}
+	return client.GetCredentials(), nil
+}
+
+// UpdateCredentials re-encrypts and saves new credentials to the existing
+// credentials file, verifying the master password against it first.
+func (a *App) UpdateCredentials(creds config.Credentials, masterPassword string) error {
+	if err := creds.Validate(); err != nil {
+		return err
+	}
+
+	cfg := a.ConfigManager.GetConfig()
+	if cfg.CredentialsFilePath == "" {
+		return fmt.Errorf("no credentials file configured")
+	}
+
+	if _, err := a.ConfigManager.LoadCredentials(masterPassword, cfg.CredentialsFilePath); err != nil {
+		return fmt.Errorf("invalid master password")
+	}
+
+	if err := a.ConfigManager.SaveCredentials(&creds, masterPassword, cfg.CredentialsFilePath); err != nil {
+		return err
+	}
+
+	a.setVPNClient(&creds)
+	a.Log("Credentials updated")
+	return nil
+}
+
 // UpdateConfig updates the application configuration
 func (a *App) UpdateConfig(cfg config.Config) error {
 	err := a.ConfigManager.SaveConfig(&cfg)

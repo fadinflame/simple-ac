@@ -53,6 +53,17 @@ func (c *Client) IsConnected() (bool, error) {
 	return c.connected, nil
 }
 
+// GetCredentials returns a copy of the currently loaded credentials
+func (c *Client) GetCredentials() *config.Credentials {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.creds == nil {
+		return nil
+	}
+	credsCopy := *c.creds
+	return &credsCopy
+}
+
 // updateStatus performs an actual CLI check and updates the cached state
 func (c *Client) updateStatus() (bool, error) {
 	output, err := c.executeCommand([]string{"status"}, "", true, statusTimeout)
