@@ -71,6 +71,29 @@ export async function checkConnectionStatus(force = false) {
     }
 }
 
+// Re-verify the real VPN state when the window regains focus, since the cached
+// status can go stale while the app was hidden/backgrounded (e.g. system sleep).
+const MIN_FORCE_CHECK_INTERVAL = 5000; // don't re-check more than once per 5s
+const MIN_HIDDEN_DURATION = 10000; // ignore quick alt-tabs, only react to longer absences
+let hiddenAt = null;
+let lastFocusCheck = 0;
+
+export function markWindowHidden() {
+    if (hiddenAt === null) hiddenAt = Date.now();
+}
+
+export function checkConnectionOnFocus() {
+    const now = Date.now();
+    const hiddenDuration = hiddenAt !== null ? now - hiddenAt : 0;
+    hiddenAt = null;
+
+    if (hiddenDuration < MIN_HIDDEN_DURATION) return;
+    if (now - lastFocusCheck < MIN_FORCE_CHECK_INTERVAL) return;
+
+    lastFocusCheck = now;
+    checkConnectionStatus(true);
+}
+
 export async function refreshConfig() {
     try {
         const c = await GetConfig();

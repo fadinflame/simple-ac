@@ -16,6 +16,8 @@
         appLogs,
         appVersion,
         checkConnectionStatus,
+        checkConnectionOnFocus,
+        markWindowHidden,
         isConnecting,
     } from "./store.js";
     import { EventsOn } from "../wailsjs/runtime/runtime.js";
@@ -79,7 +81,23 @@
         // Periodic status syncing
         checkConnectionStatus(true);
         const interval = setInterval(() => checkConnectionStatus(), 1000);
-        return () => clearInterval(interval);
+
+        // Re-verify the real state when the window comes back into focus, so a
+        // stale "connected" state doesn't linger after e.g. the system slept.
+        const handleVisibilityChange = () => {
+            if (document.hidden) markWindowHidden();
+            else checkConnectionOnFocus();
+        };
+        window.addEventListener("blur", markWindowHidden);
+        window.addEventListener("focus", checkConnectionOnFocus);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener("blur", markWindowHidden);
+            window.removeEventListener("focus", checkConnectionOnFocus);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     });
 
     const screens = {
