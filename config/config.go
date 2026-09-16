@@ -6,7 +6,6 @@ import (
 
 type Config struct {
 	CredentialsFilePath   string `json:"credentials_file_path"`
-	ShowConsoleLog        bool   `json:"show_console_log"`
 }
 
 func (c *Config) Validate() error {

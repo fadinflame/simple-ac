@@ -2,7 +2,6 @@ export namespace config {
 	
 	export class Config {
 	    credentials_file_path: string;
-	    show_console_log: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Config(source);
@@ -11,7 +10,6 @@ export namespace config {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.credentials_file_path = source["credentials_file_path"];
-	        this.show_console_log = source["show_console_log"];
 	    }
 	}
 	export class Credentials {

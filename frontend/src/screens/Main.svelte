@@ -1,7 +1,6 @@
 <script>
     import { onMount, onDestroy } from "svelte";
-    import { fade, fly, scale } from "svelte/transition";
-    import { cubicOut } from "svelte/easing";
+    import { fade, fly } from "svelte/transition";
     import {
         WindowSetTitle,
         BrowserOpenURL,
@@ -9,24 +8,15 @@
     import {
         Connect,
         Disconnect,
-        IsConnected,
-        SyncStatus,
         Lock,
-        UpdateConfig,
     } from "../../wailsjs/go/main/App.js";
-    import { EventsOn, EventsOff } from "../../wailsjs/runtime/runtime.js";
     import {
         currentScreen,
-        config,
         refreshConfig,
         isConnected,
-        theme,
         appVersion,
-        hasCheckedUpdate,
         updateRelease,
         connectionSeconds,
-        startGlobalTimer,
-        stopGlobalTimer,
         isConnecting,
         checkConnectionStatus,
     } from "../store.js";

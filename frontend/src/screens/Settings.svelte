@@ -1,18 +1,14 @@
 <script>
-    import { onMount, onDestroy } from "svelte";
     import { fade, fly, scale } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
     import {
-        WindowSetTitle,
         BrowserOpenURL,
     } from "../../wailsjs/runtime/runtime.js";
     import {
-        UpdateConfig,
         CheckForUpdates,
     } from "../../wailsjs/go/main/App.js";
     import {
         currentScreen,
-        config,
         theme,
         appVersion,
         hasCheckedUpdate,

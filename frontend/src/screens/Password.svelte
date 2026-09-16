@@ -1,13 +1,12 @@
 <script>
     import { onMount } from "svelte";
-    import { fade, fly, scale } from "svelte/transition";
+    import { fade, scale } from "svelte/transition";
     import { cubicOut } from "svelte/easing";
     import { Unlock } from "../../wailsjs/go/main/App.js";
     import { navigate } from "../store.js";
     import { AppState } from "../constants.js";
 
     let password = "";
-    let showPassword = false;
     let passwordInput;
     let isUnlocking = false;
     let error = "";
