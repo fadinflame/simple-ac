@@ -29,7 +29,7 @@ h1, h2, h3, p { margin: 0; }
 .ac-root svg, .ac-window svg { display: block; flex: none; }
 
 /* ---------- Platform + glass switches ---------- */
-:root { --toolbar-inset: 84px; --glass-fill: var(--glass); }       /* macOS: traffic lights live in the toolbar */
+:root { --toolbar-inset: 92px; --glass-fill: var(--glass); }       /* macOS: traffic lights live in the toolbar */
 :root[data-platform]:not([data-platform="darwin"]) { --toolbar-inset: var(--space-3); }   /* native title bar above */
 :root[data-glass="tinted"] { --glass-fill: var(--glass-tinted); }
 @media (prefers-reduced-transparency: reduce) { :root { --glass-fill: var(--glass-tinted); } }
@@ -51,7 +51,7 @@ h1, h2, h3, p { margin: 0; }
 /* A screen with no toolbar content keeps only a thin drag strip off macOS. */
 :root[data-platform]:not([data-platform="darwin"]) .ac-window:has(> .ac-toolbar--bare) { --chrome-top: var(--space-2); }
 
-.ac-traffic { position: absolute; top: 21px; left: 20px; display: flex; gap: 8px; z-index: 6; }
+.ac-traffic { position: absolute; top: 19.5px; left: 20px; display: flex; gap: 8px; z-index: 6; }
 .ac-traffic i { width: 13px; height: 13px; border-radius: var(--radius-full); box-shadow: inset 0 0 0 0.5px #0000002e; }
 .ac-traffic i:nth-child(1) { background: #ff5f57; }
 .ac-traffic i:nth-child(2) { background: #febc2e; }
