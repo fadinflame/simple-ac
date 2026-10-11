@@ -6,6 +6,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed all:frontend/dist
@@ -29,8 +30,15 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
+		// Matches --bg-window (light) so there is no coloured flash before the UI paints.
+		BackgroundColour: &options.RGBA{R: 239, G: 239, B: 241, A: 255},
+		Mac: &mac.Options{
+			// Traffic lights sit inside the app's own 52px toolbar, like native macOS apps.
+			TitleBar: mac.TitleBarHiddenInset(),
+			// Follow the system Light/Dark appearance; the UI can still override it in Settings.
+			Appearance: mac.DefaultAppearance,
+		},
+		OnStartup: app.startup,
 		Bind: []interface{}{
 			app,
 		},

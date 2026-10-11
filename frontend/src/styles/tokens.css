@@ -1,0 +1,123 @@
+/* SimpleAC design tokens — generated from the SimpleAC design system (tokens.json). Do not edit by hand. */
+/* Light is the default. Dark follows the OS unless the user picked a theme (data-theme on <html>). */
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-xs: 4px;
+  --radius-control: 6px;
+  --radius-group: 10px;
+  --radius-full: 9999px;
+  --size-control-sm: 22px;
+  --size-control: 28px;
+  --size-row: 40px;
+  --size-toolbar: 52px;
+  --size-window-w: 450px;
+  --size-window-h: 600px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-window: #efeff1;
+  --bg-group: #ffffff;
+  --bg-field: #ffffff;
+  --bg-control: #ffffff;
+  --bg-control-pressed: #e5e5ea;
+  --bg-track: #e3e3e8;
+  --bg-hover: #0000000f;
+  --bg-log: #ffffff;
+  --label: #1d1d1f;
+  --label-secondary: #636366;
+  --label-tertiary: #8e8e93;
+  --separator: #0000001a;
+  --field-border: #86868b;
+  --accent: #0062cc;
+  --accent-fill: #0062cc;
+  --on-accent: #ffffff;
+  --accent-tint: #0062cc14;
+  --success: #197a30;
+  --success-tint: #197a301a;
+  --warning: #a84d00;
+  --danger: #d70015;
+  --danger-fill: #d70015;
+  --neutral-tint: #0000000d;
+  --scrim: #00000026;
+  --focus-ring: var(--accent);
+  --shadow-control: 0 0 0 0.5px #0000002e, 0 0.5px 1.5px #00000026;
+  --shadow-group: 0 0 0 0.5px #0000001a;
+  --shadow-knob: 0 0 0 0.5px #0000001f, 0 1px 2px #00000033;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-window: #1e1e1e;
+    --bg-group: #2b2b2b;
+    --bg-field: #232325;
+    --bg-control: #545458;
+    --bg-control-pressed: #636366;
+    --bg-track: #3a3a3c;
+    --bg-hover: #ffffff14;
+    --bg-log: #1a1a1a;
+    --label: #f5f5f7;
+    --label-secondary: #a1a1a6;
+    --label-tertiary: #8a8a8e;
+    --separator: #ffffff1a;
+    --field-border: #76767b;
+    --accent: #3b9cff;
+    --accent-fill: #0b6bd6;
+    --on-accent: #ffffff;
+    --accent-tint: #3b9cff24;
+    --success: #32d74b;
+    --success-tint: #32d74b24;
+    --warning: #ff9f0a;
+    --danger: #ff6961;
+    --danger-fill: #d70015;
+    --neutral-tint: #ffffff12;
+    --scrim: #00000066;
+    --focus-ring: var(--accent);
+    --shadow-control: 0 0 0 0.5px #00000066, inset 0 0.5px 0 #ffffff26;
+    --shadow-group: 0 0 0 0.5px #ffffff14;
+    --shadow-knob: 0 0 0 0.5px #00000040, 0 1px 2px #00000066;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-window: #1e1e1e;
+  --bg-group: #2b2b2b;
+  --bg-field: #232325;
+  --bg-control: #545458;
+  --bg-control-pressed: #636366;
+  --bg-track: #3a3a3c;
+  --bg-hover: #ffffff14;
+  --bg-log: #1a1a1a;
+  --label: #f5f5f7;
+  --label-secondary: #a1a1a6;
+  --label-tertiary: #8a8a8e;
+  --separator: #ffffff1a;
+  --field-border: #76767b;
+  --accent: #3b9cff;
+  --accent-fill: #0b6bd6;
+  --on-accent: #ffffff;
+  --accent-tint: #3b9cff24;
+  --success: #32d74b;
+  --success-tint: #32d74b24;
+  --warning: #ff9f0a;
+  --danger: #ff6961;
+  --danger-fill: #d70015;
+  --neutral-tint: #ffffff12;
+  --scrim: #00000066;
+  --focus-ring: var(--accent);
+  --shadow-control: 0 0 0 0.5px #00000066, inset 0 0.5px 0 #ffffff26;
+  --shadow-group: 0 0 0 0.5px #ffffff14;
+  --shadow-knob: 0 0 0 0.5px #00000040, 0 1px 2px #00000066;
+}

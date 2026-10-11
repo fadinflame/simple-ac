@@ -1,6 +1,7 @@
 import { writable, get } from 'svelte/store';
 import { AppState } from "./constants.js";
 import { GetConfig, IsConnected, SyncStatus } from "../wailsjs/go/main/App.js";
+import { WindowSetLightTheme, WindowSetDarkTheme, WindowSetSystemDefaultTheme } from "../wailsjs/runtime/runtime.js";
 
 // Navigation
 export const currentScreen = writable(null);
@@ -11,16 +12,33 @@ export function navigate(screen) {
     }
 }
 
-// Theme
-const initialTheme = localStorage.getItem('theme') || 'dark';
-export const theme = writable(initialTheme);
+// Theme: 'system' | 'light' | 'dark'. 'system' follows the OS appearance (prefers-color-scheme).
+// Old installs stored 'light'/'dark' under the same key — those values are still valid.
+function readTheme() {
+    try {
+        return localStorage.getItem('theme') || 'system';
+    } catch {
+        return 'system';
+    }
+}
+export const theme = writable(readTheme());
 
 theme.subscribe(val => {
-    localStorage.setItem('theme', val);
-    if (val === 'dark') {
-        document.documentElement.classList.add('dark-theme');
-    } else {
-        document.documentElement.classList.remove('dark-theme');
+    try {
+        localStorage.setItem('theme', val);
+    } catch {
+        /* storage unavailable: keep the choice for this session only */
+    }
+    const root = document.documentElement;
+    if (val === 'light' || val === 'dark') root.setAttribute('data-theme', val);
+    else root.removeAttribute('data-theme');
+    // Native title bar / window chrome (takes effect on Windows; macOS follows the system).
+    try {
+        if (val === 'light') WindowSetLightTheme();
+        else if (val === 'dark') WindowSetDarkTheme();
+        else WindowSetSystemDefaultTheme();
+    } catch {
+        /* runtime not ready (e.g. vite preview in a browser) */
     }
 });
 

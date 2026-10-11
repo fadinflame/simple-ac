@@ -22,7 +22,7 @@ Single-window app, fixed size 450x600, no resize (see `main.go`).
 | Node (CI) | 24 | — | [.github/workflows/build.yml](.github/workflows/build.yml); local dev machine default is v24.21.0 via nvm |
 | Module path | `github.com/fadinflame/simple-ac` | — | [go.mod](go.mod) |
 
-No TypeScript, no state-management library (plain Svelte stores), no CSS framework (hand-written CSS with CSS custom properties for theming, in `App.svelte` `:global(:root)`).
+No TypeScript, no state-management library (plain Svelte stores), no CSS framework (hand-written CSS: design tokens as CSS custom properties in `frontend/src/styles/tokens.css`, `ac-*` component classes in `frontend/src/styles/app.css`, thin Svelte wrappers in `frontend/src/lib/ui/`).
 
 ## 3. High-level architecture
 
@@ -117,7 +117,7 @@ flowchart LR
 | Store | Purpose |
 |---|---|
 | `currentScreen` | drives the router in `App.svelte`; set via `navigate(AppState.X)` |
-| `theme` | `'light'`/`'dark'`, persisted to `localStorage`, toggles `.dark-theme` class on `<html>` (CSS vars defined in `App.svelte`) |
+| `theme` | `'system'` (default) / `'light'` / `'dark'`, persisted to `localStorage`, sets `data-theme` on `<html>` (none = follow OS via `prefers-color-scheme`) |
 | `isConnected` / `isConnecting` | VPN state; `isConnecting` also mirrors the Go `connection-processing` event so long-running connect/disconnect calls disable UI everywhere |
 | `vpnLogs` / `appLogs` | raw strings appended to by `vpn-log`/`app-log` events, capped at 200000 chars client-side |
 | `connectionSeconds` + `startGlobalTimer`/`stopGlobalTimer` | connection duration ticker, started/stopped from `checkConnectionStatus` |
@@ -131,5 +131,5 @@ flowchart LR
 - Any Go→UI push notification uses `runtime.EventsEmit(a.ctx, "<event-name>", payload)`; subscribe in `App.svelte` (global) or a screen's `onMount` via `EventsOn`, and always `EventsOff`/unsubscribe in `onDestroy` if added at screen level (existing global listeners in `App.svelte` are intentionally never unsubscribed since it lives for the app's lifetime).
 - After changing any `App` method signature, regenerate Wails bindings (`wails build` or `wails dev`) and commit the resulting diff under `frontend/wailsjs/go/main/`.
 - Frontend has no router/library — new screens: add to `AppState` in [constants.js](frontend/src/constants.js), add the component to the `screens` map in [App.svelte](frontend/src/App.svelte), navigate via `navigate(AppState.X)` from `store.js`.
-- Styling: no CSS framework; reuse the CSS custom properties defined in `App.svelte`'s `:global(:root)`/`:global(.dark-theme)` blocks and existing `.btn`/`.btn-primary` global classes instead of introducing new ad-hoc colors.
+- Styling: follows the SimpleAC design system (macOS-native look). Use the components in `frontend/src/lib/ui` (Button, TextField, Group/Row/FieldRow, Toolbar…) and the tokens in `styles/tokens.css` (`--bg-window`, `--label`, `--accent-fill`, `--space-*`…); never hard-code colours. `tokens.css` is generated from the design system's `tokens.json` — change values there. One `variant="default"` button per screen.
 - Window is fixed-size, non-resizable by design (`main.go` options) — don't add layouts that assume resizing.
