@@ -97,11 +97,8 @@ h1, h2, h3, p { margin: 0; }
   border-radius: var(--radius-full);
   cursor: default;
 }
-.ac-tbtn:hover { background: var(--bg-hover); }
-.ac-tbtn:active { background: var(--bg-hover); filter: brightness(0.92); }
 .ac-tbtn:disabled { opacity: .35; background: transparent; }
 .ac-tbtn--round { width: 34px; height: 34px; background: var(--glass-control); box-shadow: var(--shadow-control); }
-.ac-tbtn--round:hover { background: var(--glass-control); filter: brightness(0.97); }
 .ac-tbtn--round:disabled { background: var(--glass-control); }
 
 /* ---------- Capsule buttons ---------- */
@@ -119,11 +116,9 @@ h1, h2, h3, p { margin: 0; }
   white-space: nowrap;
   cursor: default;
 }
-.ac-btn:active { background: var(--bg-control-pressed); }
 .ac-btn:disabled { opacity: .45; }
 .ac-btn--sm { height: var(--size-control-sm); min-width: 0; padding: 0 var(--space-3); }
 .ac-btn--default { background: var(--accent-fill); color: var(--on-accent); box-shadow: var(--shadow-accent); }
-.ac-btn--default:active { background: var(--accent-fill); filter: brightness(0.88); }
 .ac-btn--danger { background: var(--danger-fill); color: var(--on-accent); box-shadow: var(--shadow-accent); }
 .ac-btn--wide { min-width: 168px; }
 .ac-btn--block { width: 100%; }
@@ -135,7 +130,6 @@ h1, h2, h3, p { margin: 0; }
   color: var(--accent);
   cursor: default;
 }
-.ac-link:hover { text-decoration: underline; }
 .ac-link--danger { color: var(--danger); }
 .ac-link--sm { font-size: 11px; }
 
@@ -180,7 +174,6 @@ h1, h2, h3, p { margin: 0; }
   color: var(--label-secondary); display: flex; align-items: center; justify-content: center;
   cursor: default; border-radius: 3px;
 }
-.ac-stepper button:hover { background: var(--bg-hover); color: var(--label); }
 
 /* path field */
 .ac-path { display: flex; gap: var(--space-2); align-items: center; min-width: 0; }
@@ -332,7 +325,6 @@ h1, h2, h3, p { margin: 0; }
   display: flex; align-items: center; justify-content: center;
   cursor: default;
 }
-.ac-field-btn:hover { color: var(--label); background: var(--bg-hover); }
 
 /* ---------- Notice (update available) ---------- */
 .ac-notice {
@@ -360,6 +352,33 @@ h1, h2, h3, p { margin: 0; }
 .ac-alert-title { font-size: 13px; line-height: 16px; font-weight: 600; margin: 0; }
 .ac-alert-text { font-size: 11px; line-height: 14px; color: var(--label-secondary); margin: 6px 0 var(--space-4); }
 .ac-alert-actions { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* ---------- Hover and press ----------
+   Every clickable thing answers the pointer: glass gets a step more contrast, accent and
+   destructive capsules get a lighter fill, plain items get a bg-hover wash. Hover only on
+   devices that really hover (no sticky hover after a tap); press always. */
+.ac-btn, .ac-tbtn, .ac-seg button, .ac-link, .ac-field-btn, .ac-stepper button {
+  transition: background-color .12s ease, color .12s ease, filter .12s ease;
+}
+@media (hover: hover) {
+  .ac-btn:not(:disabled):hover,
+  .ac-tbtn--round:not(:disabled):hover { background: var(--glass-control-hover); }
+  .ac-btn--default:not(:disabled):hover { background: var(--accent-fill-hover); }
+  .ac-btn--danger:not(:disabled):hover { background: var(--danger-fill-hover); }
+  .ac-tbtn:not(.ac-tbtn--round):not(:disabled):hover { background: var(--bg-hover); }
+  .ac-seg button:not([aria-pressed="true"]):hover { background: var(--bg-hover); }
+  .ac-link:hover { text-decoration: underline; }
+  .ac-field-btn:hover, .ac-stepper button:hover { color: var(--label); background: var(--bg-hover); }
+}
+.ac-btn:not(:disabled):active,
+.ac-tbtn--round:not(:disabled):active { background: var(--bg-control-pressed); }
+.ac-btn--default:not(:disabled):active { background: var(--accent-fill); filter: brightness(.88); }
+.ac-btn--danger:not(:disabled):active { background: var(--danger-fill); filter: brightness(.88); }
+.ac-tbtn:not(.ac-tbtn--round):not(:disabled):active { background: var(--bg-hover); filter: brightness(.92); }
+.ac-seg button:not([aria-pressed="true"]):active { background: var(--bg-hover); filter: brightness(.92); }
+@media (prefers-reduced-motion: reduce) {
+  .ac-btn, .ac-tbtn, .ac-seg button, .ac-link, .ac-field-btn, .ac-stepper button { transition: none; }
+}
 
 /* ---------- Helpers ---------- */
 .ac-row-flex { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
