@@ -77,7 +77,7 @@
 
 <div class="ac-window ac-window--native">
     <Toolbar title="VPN Credentials">
-        <ToolbarButton slot="left" icon="chevron-left" label="Back" on:click={goBack} />
+        <ToolbarButton slot="left" round icon="chevron-left" label="Back" on:click={goBack} />
     </Toolbar>
 
     {#if isLoading}

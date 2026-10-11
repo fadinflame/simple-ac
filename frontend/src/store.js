@@ -42,6 +42,26 @@ theme.subscribe(val => {
     }
 });
 
+// Toolbar glass: 'clear' | 'tinted' (the in-app counterpart of macOS 27's transparency slider).
+// Reduce Transparency and webviews without backdrop-filter fall back to tinted in CSS.
+function readGlass() {
+    try {
+        return localStorage.getItem('glass') || 'clear';
+    } catch {
+        return 'clear';
+    }
+}
+export const glass = writable(readGlass());
+
+glass.subscribe(val => {
+    try {
+        localStorage.setItem('glass', val);
+    } catch {
+        /* storage unavailable */
+    }
+    document.documentElement.setAttribute('data-glass', val === 'tinted' ? 'tinted' : 'clear');
+});
+
 // App State
 export const isConnected = writable(false);
 export const isConnecting = writable(false);

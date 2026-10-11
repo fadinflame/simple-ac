@@ -9,31 +9,37 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
-  --radius-xs: 4px;
-  --radius-control: 6px;
-  --radius-group: 10px;
+  --radius-xs: 6px;
+  --radius-control: 10px;
+  --radius-group: 16px;
+  --radius-window: 22px;
   --radius-full: 9999px;
-  --size-control-sm: 22px;
-  --size-control: 28px;
-  --size-row: 40px;
-  --size-toolbar: 52px;
+  --size-control-sm: 26px;
+  --size-control: 32px;
+  --size-row: 46px;
+  --size-toolbar: 56px;
   --size-window-w: 450px;
   --size-window-h: 600px;
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
 }
 
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg-window: #efeff1;
+  --bg-window: #f4f4f6;
   --bg-group: #ffffff;
-  --bg-field: #ffffff;
   --bg-control: #ffffff;
   --bg-control-pressed: #e5e5ea;
-  --bg-track: #e3e3e8;
+  --bg-track: #e5e5ea;
   --bg-hover: #0000000f;
   --bg-log: #ffffff;
+  --glass: #fafafc80;
+  --glass-tinted: #f4f4f6e6;
+  --glass-control: #ffffffbf;
+  --glass-rim: #00000026;
+  --glass-highlight: #ffffffe6;
+  --bg-field: #ffffff;
   --label: #1d1d1f;
   --label-secondary: #636366;
   --label-tertiary: #8e8e93;
@@ -51,22 +57,29 @@
   --neutral-tint: #0000000d;
   --scrim: #00000026;
   --focus-ring: var(--accent);
-  --shadow-control: 0 0 0 0.5px #0000002e, 0 0.5px 1.5px #00000026;
-  --shadow-group: 0 0 0 0.5px #0000001a;
+  --shadow-control: 0 0 0 0.5px #00000026, inset 0 1px 0 #ffffffe6, 0 2px 8px #00000014;
+  --shadow-group: 0 0 0 0.5px #00000014;
   --shadow-knob: 0 0 0 0.5px #0000001f, 0 1px 2px #00000033;
+  --shadow-accent: inset 0 1px 0 #ffffff47, 0 0 0 0.5px #0000002e, 0 3px 10px #00000029;
+  --shadow-window: 0 0 0 0.5px #0000002e, 0 24px 64px #0000004d;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg-window: #1e1e1e;
-    --bg-group: #2b2b2b;
-    --bg-field: #232325;
+    --bg-window: #1c1c1e;
+    --bg-group: #2c2c2e;
     --bg-control: #545458;
     --bg-control-pressed: #636366;
     --bg-track: #3a3a3c;
     --bg-hover: #ffffff14;
-    --bg-log: #1a1a1a;
+    --bg-log: #161618;
+    --glass: #2828287a;
+    --glass-tinted: #1e1e20eb;
+    --glass-control: #48484ca3;
+    --glass-rim: #ffffff24;
+    --glass-highlight: #ffffff24;
+    --bg-field: #232325;
     --label: #f5f5f7;
     --label-secondary: #a1a1a6;
     --label-tertiary: #8a8a8e;
@@ -84,22 +97,29 @@
     --neutral-tint: #ffffff12;
     --scrim: #00000066;
     --focus-ring: var(--accent);
-    --shadow-control: 0 0 0 0.5px #00000066, inset 0 0.5px 0 #ffffff26;
-    --shadow-group: 0 0 0 0.5px #ffffff14;
+    --shadow-control: 0 0 0 0.5px #ffffff24, inset 0 1px 0 #ffffff24, 0 2px 8px #00000040;
+    --shadow-group: 0 0 0 0.5px #ffffff17;
     --shadow-knob: 0 0 0 0.5px #00000040, 0 1px 2px #00000066;
+    --shadow-accent: inset 0 1px 0 #ffffff33, 0 0 0 0.5px #00000066, 0 3px 10px #00000059;
+    --shadow-window: 0 0 0 0.5px #ffffff24, 0 24px 64px #00000080;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg-window: #1e1e1e;
-  --bg-group: #2b2b2b;
-  --bg-field: #232325;
+  --bg-window: #1c1c1e;
+  --bg-group: #2c2c2e;
   --bg-control: #545458;
   --bg-control-pressed: #636366;
   --bg-track: #3a3a3c;
   --bg-hover: #ffffff14;
-  --bg-log: #1a1a1a;
+  --bg-log: #161618;
+  --glass: #2828287a;
+  --glass-tinted: #1e1e20eb;
+  --glass-control: #48484ca3;
+  --glass-rim: #ffffff24;
+  --glass-highlight: #ffffff24;
+  --bg-field: #232325;
   --label: #f5f5f7;
   --label-secondary: #a1a1a6;
   --label-tertiary: #8a8a8e;
@@ -117,7 +137,9 @@
   --neutral-tint: #ffffff12;
   --scrim: #00000066;
   --focus-ring: var(--accent);
-  --shadow-control: 0 0 0 0.5px #00000066, inset 0 0.5px 0 #ffffff26;
-  --shadow-group: 0 0 0 0.5px #ffffff14;
+  --shadow-control: 0 0 0 0.5px #ffffff24, inset 0 1px 0 #ffffff24, 0 2px 8px #00000040;
+  --shadow-group: 0 0 0 0.5px #ffffff17;
   --shadow-knob: 0 0 0 0.5px #00000040, 0 1px 2px #00000066;
+  --shadow-accent: inset 0 1px 0 #ffffff33, 0 0 0 0.5px #00000066, 0 3px 10px #00000059;
+  --shadow-window: 0 0 0 0.5px #ffffff24, 0 24px 64px #00000080;
 }

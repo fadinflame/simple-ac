@@ -151,7 +151,7 @@
         </form>
 
         <footer class="ac-assist-foot">
-            <span class="ac-assist-step">Step 1 of 2</span>
+            <span class="ac-assist-step"><i class="on"></i><i></i><span class="ac-sr">Step 1 of 2</span></span>
             {#if configExists}
                 <Button on:click={() => navigate(AppState.PASSWORD)}>Cancel</Button>
             {/if}
@@ -202,7 +202,7 @@
         </form>
 
         <footer class="ac-assist-foot">
-            <span class="ac-assist-step">Step 2 of 2</span>
+            <span class="ac-assist-step"><i></i><i class="on"></i><span class="ac-sr">Step 2 of 2</span></span>
             <Button on:click={prevStep}>Back</Button>
             <Button type="submit" form="setup-step-2" variant="default" disabled={isSaving}>
                 {isSaving ? "Saving…" : "Encrypt & Save"}

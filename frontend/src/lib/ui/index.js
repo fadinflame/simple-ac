@@ -2,6 +2,7 @@ export { default as Icon } from './Icon.svelte';
 export { default as Button } from './Button.svelte';
 export { default as LinkButton } from './LinkButton.svelte';
 export { default as ToolbarButton } from './ToolbarButton.svelte';
+export { default as ToolbarGroup } from './ToolbarGroup.svelte';
 export { default as Toolbar } from './Toolbar.svelte';
 export { default as TextField } from './TextField.svelte';
 export { default as NumberField } from './NumberField.svelte';

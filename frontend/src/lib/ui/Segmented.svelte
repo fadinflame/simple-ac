@@ -5,6 +5,8 @@
   export let items = [];
   export let value;
   export let small = false;
+  /** Glass variant for use inside the toolbar. */
+  export let glass = false;
   export let label = undefined;
 
   function onKey(e) {
@@ -17,7 +19,7 @@
   }
 </script>
 
-<div class="ac-seg" class:ac-seg--sm={small} role="group" aria-label={label} on:keydown={onKey}>
+<div class="ac-seg" class:ac-seg--sm={small} class:ac-seg--glass={glass} role="group" aria-label={label} on:keydown={onKey}>
   {#each items as item (item.value)}
     <button type="button" aria-pressed={item.value === value} on:click={() => (value = item.value)}>
       {#if item.icon}<Icon name={item.icon} size={14} />{/if}

@@ -6,6 +6,7 @@
     import {
         currentScreen,
         theme,
+        glass,
         appVersion,
         hasCheckedUpdate,
         updateRelease,
@@ -26,6 +27,11 @@
     let isCheckingUpdate = false;
     let updateStatus = "";
     let account = "";
+
+    const glassModes = [
+        { value: "clear", label: "Clear" },
+        { value: "tinted", label: "Tinted" },
+    ];
 
     const themes = [
         { value: "system", label: "System" },
@@ -82,13 +88,16 @@
 
 <div class="ac-window ac-window--native">
     <Toolbar title="Settings">
-        <ToolbarButton slot="left" icon="chevron-left" label="Back" on:click={goBack} />
+        <ToolbarButton slot="left" round icon="chevron-left" label="Back" on:click={goBack} />
     </Toolbar>
 
     <div class="ac-content ac-content--scroll">
         <Group title="Appearance">
             <Row label="Theme">
                 <Segmented small label="Theme" items={themes} bind:value={$theme} />
+            </Row>
+            <Row label="Toolbar" sub="Tinted is easier to read over busy content">
+                <Segmented small label="Toolbar" items={glassModes} bind:value={$glass} />
             </Row>
         </Group>
 

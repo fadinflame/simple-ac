@@ -26,12 +26,12 @@
 
 <div class="ac-window ac-window--native">
     <Toolbar>
-        <ToolbarButton slot="left" icon="chevron-left" label="Back" on:click={goBack} />
-        <Segmented slot="center" small label="Log source" items={tabs} bind:value={activeTab} />
-        <ToolbarButton slot="right" icon="trash" label="Clear Log" disabled={!text} on:click={clearLogs} />
+        <ToolbarButton slot="left" round icon="chevron-left" label="Back" on:click={goBack} />
+        <Segmented slot="center" glass label="Log source" items={tabs} bind:value={activeTab} />
+        <ToolbarButton slot="right" round icon="trash" label="Clear Log" disabled={!text} on:click={clearLogs} />
     </Toolbar>
 
-    <div class="ac-content" style="padding: var(--space-1) var(--space-5) var(--space-5)">
+    <div class="ac-content" style="padding: calc(var(--chrome-top) + var(--space-1)) var(--space-5) var(--space-5)">
         {#key activeTab}
             <LogView
                 {text}

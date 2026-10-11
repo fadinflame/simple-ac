@@ -17,6 +17,7 @@
         Icon,
         Toolbar,
         ToolbarButton,
+        ToolbarGroup,
         StatusHeader,
         Group,
         Row,
@@ -116,15 +117,15 @@
 <svelte:window on:keydown={onKey} />
 
 <div class="ac-window ac-window--native">
-    <Toolbar title="SimpleAC">
-        <svelte:fragment slot="right">
+    <Toolbar title="SimpleAC" appTitle>
+        <ToolbarGroup slot="right" label="Window actions">
             <ToolbarButton icon="sliders" label="Settings" on:click={goToSettings} />
             <ToolbarButton icon="doc" label="Logs" on:click={goToLogs} />
             <ToolbarButton icon="lock" label="Lock" on:click={lockApp} />
-        </svelte:fragment>
+        </ToolbarGroup>
     </Toolbar>
 
-    <div class="ac-content" style="padding-top: var(--space-2)">
+    <div class="ac-content" style="padding-top: calc(var(--chrome-top) + var(--space-2))">
         {#if $updateRelease}
             <div class="ac-notice">
                 <span class="ac-notice-icon"><Icon name="arrow-down-circle" /></span>
@@ -134,6 +135,7 @@
                 <Button size="small" on:click={() => BrowserOpenURL($updateRelease.html_url)}>View…</Button>
                 <button
                     class="ac-tbtn"
+                    type="button"
                     title="Dismiss"
                     aria-label="Dismiss"
                     on:click={() => ($updateRelease = null)}
@@ -143,7 +145,7 @@
             </div>
         {/if}
 
-        <div style="margin-top: 36px">
+        <div style="margin-top: 28px">
             <StatusHeader state={status} {subtitle} error={connectionError} timer={formattedTime} />
         </div>
 
