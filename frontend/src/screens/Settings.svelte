@@ -1,15 +1,24 @@
 <script>
     import { fade } from "svelte/transition";
     import { BrowserOpenURL } from "../../wailsjs/runtime/runtime.js";
-    import { CheckForUpdates, GetCredentials } from "../../wailsjs/go/main/App.js";
-    import { onMount } from "svelte";
+    import {
+        CheckForUpdates,
+        GetCredentials,
+        GetDefaultCLIPath,
+        SelectCLIPath,
+        SetCLIPath,
+    } from "../../wailsjs/go/main/App.js";
+    import { onMount, onDestroy } from "svelte";
     import {
         currentScreen,
+        config,
         theme,
         glass,
         appVersion,
         hasCheckedUpdate,
         updateRelease,
+        refreshConfig,
+        checkConnectionStatus,
     } from "../store.js";
     import { AppState } from "../constants.js";
     import {
@@ -18,6 +27,8 @@
         Segmented,
         Group,
         Row,
+        FieldRow,
+        PathField,
         Toolbar,
         ToolbarButton,
         Icon,
@@ -27,6 +38,12 @@
     let isCheckingUpdate = false;
     let updateStatus = "";
     let account = "";
+    let defaultCLIPath = "";
+    let cliError = "";
+    let isCheckingCLI = false;
+    let cliErrorTimeout;
+
+    $: customCLIPath = $config?.cli_path || "";
 
     const glassModes = [
         { value: "clear", label: "Light" },
@@ -40,6 +57,7 @@
     ];
 
     onMount(async () => {
+        GetDefaultCLIPath().then((p) => (defaultCLIPath = p));
         try {
             const c = await GetCredentials();
             if (c) account = [c.server, c.username].filter(Boolean).join(" · ");
@@ -47,6 +65,29 @@
             account = "";
         }
     });
+
+    onDestroy(() => clearTimeout(cliErrorTimeout));
+
+    async function applyCLIPath(path) {
+        cliError = "";
+        clearTimeout(cliErrorTimeout);
+        isCheckingCLI = true;
+        try {
+            await SetCLIPath(path);
+            await refreshConfig();
+            checkConnectionStatus(true);
+        } catch (err) {
+            cliError = String(err);
+            cliErrorTimeout = setTimeout(() => (cliError = ""), 8000);
+        } finally {
+            isCheckingCLI = false;
+        }
+    }
+
+    async function chooseCLIPath() {
+        const path = await SelectCLIPath();
+        if (path) await applyCLIPath(path);
+    }
 
     function goBack() {
         $currentScreen = AppState.MAIN;
@@ -107,6 +148,26 @@
             </Row>
         </Group>
 
+        <Group title="VPN client">
+            <FieldRow label="CLI">
+                <PathField path={customCLIPath || defaultCLIPath}>
+                    <Button size="small" disabled={isCheckingCLI} on:click={chooseCLIPath}>
+                        {isCheckingCLI ? "Checking…" : "Choose…"}
+                    </Button>
+                </PathField>
+            </FieldRow>
+            <svelte:fragment slot="footer">
+                {#if cliError}
+                    <span style="color: var(--danger)" role="alert">{cliError}</span>
+                {:else if customCLIPath}
+                    Using a custom location.
+                    <LinkButton small on:click={() => applyCLIPath("")}>Use default</LinkButton>
+                {:else}
+                    Default location of the VPN command-line client.
+                {/if}
+            </svelte:fragment>
+        </Group>
+
         <Group title="About">
             <Row label="Version" sub={updateStatus ? `${$appVersion || "dev"} — ${updateStatus}` : $appVersion || "dev"}>
                 <Button size="small" disabled={isCheckingUpdate} on:click={checkUpdate}>
@@ -115,7 +176,7 @@
             </Row>
         </Group>
 
-        <Group footer="Runs the first-time setup again. Saving to the same file replaces the current configuration.">
+        <Group>
             <Row>
                 <LinkButton slot="label" tone="danger" on:click={() => (showResetConfirm = true)}>
                     Set Up Again…
@@ -130,7 +191,7 @@
                 <div class="ac-unlock-icon"><Icon name="alert" size={24} stroke={1.4} /></div>
                 <h3 class="ac-alert-title" id="reset-title">Set up SimpleAC again?</h3>
                 <p class="ac-alert-text" id="reset-text">
-                    You'll enter your VPN details and choose a master password again.
+                    You'll enter your VPN details and choose a master password again. Saving to the same file replaces your current configuration.
                 </p>
                 <div class="ac-alert-actions">
                     <Button variant="danger" block on:click={confirmReset}>Set Up Again</Button>

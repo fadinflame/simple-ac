@@ -34,6 +34,10 @@ export function GetCredentials() {
   return window['go']['main']['App']['GetCredentials']();
 }
 
+export function GetDefaultCLIPath() {
+  return window['go']['main']['App']['GetDefaultCLIPath']();
+}
+
 export function GetVPNLogs() {
   return window['go']['main']['App']['GetVPNLogs']();
 }
@@ -58,8 +62,16 @@ export function SaveConfig(arg1, arg2, arg3) {
   return window['go']['main']['App']['SaveConfig'](arg1, arg2, arg3);
 }
 
+export function SelectCLIPath() {
+  return window['go']['main']['App']['SelectCLIPath']();
+}
+
 export function SelectConfigPath() {
   return window['go']['main']['App']['SelectConfigPath']();
+}
+
+export function SetCLIPath(arg1) {
+  return window['go']['main']['App']['SetCLIPath'](arg1);
 }
 
 export function SyncStatus() {

@@ -55,7 +55,7 @@ flowchart LR
 |---|---|
 | [main.go](main.go) | Wails app bootstrap: window options (450x600 fixed), embeds `frontend/dist`, binds `App` struct, `Version` var (set via `-ldflags -X main.Version=x.y.z` in CI, default `"dev"`). |
 | [app.go](app.go) | **The entire backend API surface exposed to the frontend.** Thin orchestration layer: owns `ConfigManager` + `VPNClient`, wires Go→JS events (`vpn-log`, `app-log`, `connection-processing`). No business logic lives here beyond wiring. Includes `GetCredentials()` (returns the live in-memory creds for pre-filling the edit form) and `UpdateCredentials(creds, masterPassword)` (re-encrypts to the existing `CredentialsFilePath`, verifying `masterPassword` by decrypting the current file first). |
-| [config/config.go](config/config.go) | `Config` struct = non-secret app settings (`credentials_file_path`). Plain JSON, unencrypted. |
+| [config/config.go](config/config.go) | `Config` struct = non-secret app settings (`credentials_file_path`, optional `cli_path` override for the Cisco CLI; empty = OS default). Plain JSON, unencrypted. |
 | [config/credentials.go](config/credentials.go) | `Credentials` struct = secrets (`server`, `username`, `password`, `group` int, `otp_secret`). This is what gets encrypted. |
 | [config/manager.go](config/manager.go) | Persistence layer. `Config` → `~/.simple-ac/config.json` (macOS/Linux) or `%APPDATA%/simple-ac/config.json` (Windows), plaintext, mode 0600. `Credentials` → user-chosen path, AES-encrypted blob via `security` package. |
 | [security/crypto.go](security/crypto.go) | `Encrypt`/`Decrypt`: AES-256-GCM, key = PBKDF2-SHA256(password, salt, **100000** iterations, 32 bytes). Blob layout: `[16-byte salt][12-byte GCM nonce][ciphertext]`. |
@@ -96,7 +96,7 @@ flowchart LR
 
 ## 6. `vpn.Client` internals ([vpn/client.go](vpn/client.go))
 
-- CLI paths: `/opt/cisco/anyconnect/bin/vpn` (macOS/Linux), `C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe` (Windows). Hardcoded constants, not configurable via UI.
+- CLI paths: defaults `/opt/cisco/anyconnect/bin/vpn` (macOS/Linux), `C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe` (Windows), exposed via `vpn.DefaultCLIPath()`. A custom path from `Config.CLIPath` (set in Settings › VPN client via `App.SelectCLIPath`/`SetCLIPath`) overrides it; the client reads it on every command through the `cliPath` callback passed to `NewClient`.
 - `Connect()`: pipes stdin `"<group>\n<username>\n<password>\n[<totp_code>\n]y\n"` to `vpn -s connect <server>`. TOTP code generated on-the-fly via `totp.GenerateCode(otpSecret, time.Now())` only if `OTPSecret` is set. Success = stdout contains `">> state: Connected"`.
 - `Disconnect()`: runs `vpn disconnect`, success = output contains `">> state: Disconnected"`.
 - `IsConnected()`: returns cached bool, no CLI call (cheap, for 1s polling).
@@ -104,6 +104,9 @@ flowchart LR
 - Timeouts: status 5s, connect 10s, disconnect 5s — via `context.WithTimeout` around `exec.CommandContext`.
 - Log buffer: `lastOutput` capped at 256KB (`maxLogSize`), streamed chunk-by-chunk to `OnLog` callback (wired to `runtime.EventsEmit(ctx, "vpn-log", ...)` in `app.go`). Status-check output (`silent=true`) is NOT appended to logs or emitted (avoids spamming the log view every 30s/1s).
 - `Stop()` closes `stopReconcile` channel to kill the background goroutine — must be called before discarding a `Client` (done in `setVPNClient` and `Lock`).
+- CLI start failures: `executeCommand` turns a failed `cmd.Start()` (missing file, no permission, bad format) into a `*vpn.CLIError` with a user-facing message and writes `[ERROR] …` to the log (non-silent calls only). `Connect`/`Disconnect` pass a `CLIError` through unchanged and replace every other error with a generic "… See Logs for details." via `userError`, so `Main.svelte` can show `err` directly as the subtitle. Background status checks fail silently by design.
+- `vpn.VerifyCLI(path)` runs `<path> status` (5s timeout) and requires `">> state:"` in the output; used by `App.SetCLIPath` before saving a custom path. Order of checks there: exists → not a dir → exec bit (non-Windows only) → `VerifyCLI`. A rejected path never overwrites the saved one; an empty path resets to default and skips verification. Messages are capitalised sentences because the UI shows them verbatim.
+- The Wails file dialog can only filter by extension (`*.exe` on Windows); there is no "executable" filter on macOS/Linux, hence the post-selection checks above.
 
 ## 7. Security model
 
@@ -134,3 +137,12 @@ flowchart LR
 - Frontend has no router/library — new screens: add to `AppState` in [constants.js](frontend/src/constants.js), add the component to the `screens` map in [App.svelte](frontend/src/App.svelte), navigate via `navigate(AppState.X)` from `store.js`.
 - Styling: follows the SimpleAC design system (macOS-native look). Use the components in `frontend/src/lib/ui` (Button, TextField, Group/Row/FieldRow, Toolbar…) and the tokens in `styles/tokens.css` (`--bg-window`, `--label`, `--accent-fill`, `--space-*`…); never hard-code colours. `tokens.css` is generated from the design system's `tokens.json` — change values there. One `variant="default"` button per screen. Design v2 (macOS 27 look): the `Toolbar` is glass and laid over the content — screens pad their content with `var(--chrome-top)`; related toolbar buttons go in a `ToolbarGroup`, a lone one is `ToolbarButton round`. Platform differences (traffic-light inset, hidden app title off macOS, tinted fallback without `backdrop-filter`) live in CSS keyed on `data-platform`, never in per-OS screens.
 - Window is fixed-size, non-resizable by design (`main.go` options) — don't add layouts that assume resizing.
+- Settings is a scrolling screen in a fixed 600px window; it was tuned to just fit (long group footers were moved into dialogs to avoid a nominal scrollbar). Adding rows/footers there can bring the scrollbar back — check it in `wails dev`.
+- UI text uses neutral wording ("VPN client", "VPN command-line client") rather than Cisco/AnyConnect product names (trademark); the README carries the non-affiliation notice. Keep Cisco names to code, paths and docs.
+- Transient UI errors (connect failure, rejected CLI path) auto-dismiss after ~8s and are cleared on the next attempt; don't leave stale error text pinned to a control whose value didn't change.
+
+## 10. Testing
+
+- Go tests: `go test ./vpn/` (add `-race`). Tests for the `main` package need the macOS CGO flags and tag from the VS Code tasks: `CGO_CFLAGS="-mmacosx-version-min=10.13" CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13" go test -tags dev .` (without them linking fails with `_OBJC_CLASS_$_UTType`).
+- Tests fake the Cisco CLI with `#!/bin/sh` scripts in `t.TempDir()` and are skipped on Windows. `app_test.go` isolates config by `t.Setenv("HOME", …)`. The `VerifyCLI` timeout path is untested (`statusTimeout` is a 5s const).
+- No frontend tests exist.

@@ -24,6 +24,7 @@
     } from "../lib/ui";
 
     let connectionError = false;
+    let errorMessage = "";
     let errorTimeout;
     // Only the non-secret fields are kept for display.
     let profile = { server: "", username: "", group: 0 };
@@ -59,7 +60,7 @@
           : "disconnected";
 
     $: subtitle = connectionError
-        ? "Couldn't connect. See Logs for details."
+        ? errorMessage || "Couldn't connect. See Logs for details."
         : status === "connecting"
           ? "Waiting for the server"
           : profile.server;
@@ -77,15 +78,16 @@
             }
         } catch (err) {
             console.error("VPN Error:", err);
-            showError();
+            showError(String(err));
         } finally {
             $isConnecting = false;
             await checkConnectionStatus(true);
         }
     }
 
-    function showError() {
+    function showError(message = "") {
         connectionError = true;
+        errorMessage = message;
         if (errorTimeout) clearTimeout(errorTimeout);
         errorTimeout = setTimeout(() => (connectionError = false), 8000);
     }

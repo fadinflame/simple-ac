@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	goruntime "runtime"
+	"strings"
 	"sync"
 
 	"github.com/fadinflame/simple-ac/config"
@@ -48,7 +51,9 @@ func (a *App) setVPNClient(creds *config.Credentials) {
 		a.VPNClient.Stop()
 	}
 
-	a.VPNClient = vpn.NewClient(creds)
+	a.VPNClient = vpn.NewClient(creds, func() string {
+		return a.ConfigManager.GetConfig().CLIPath
+	})
 	a.VPNClient.OnLog = func(log string) {
 		if a.ctx != nil {
 			runtime.EventsEmit(a.ctx, "vpn-log", log)
@@ -271,6 +276,70 @@ func (a *App) SelectConfigPath() string {
 		return ""
 	}
 	return path
+}
+
+// GetDefaultCLIPath returns the built-in Cisco CLI location for this OS
+func (a *App) GetDefaultCLIPath() string {
+	return vpn.DefaultCLIPath()
+}
+
+// SelectCLIPath opens a file picker for the Cisco CLI binary; returns "" if cancelled
+func (a *App) SelectCLIPath() string {
+	opts := runtime.OpenDialogOptions{Title: "Choose the VPN command-line client"}
+	if goruntime.GOOS == "windows" {
+		opts.Filters = []runtime.FileFilter{
+			{DisplayName: "Executables (*.exe)", Pattern: "*.exe"},
+		}
+	}
+	if custom := a.ConfigManager.GetConfig().CLIPath; custom != "" {
+		opts.DefaultDirectory = filepath.Dir(custom)
+	} else if dir := filepath.Dir(vpn.DefaultCLIPath()); dirExists(dir) {
+		opts.DefaultDirectory = dir
+	}
+
+	path, err := runtime.OpenFileDialog(a.ctx, opts)
+	if err != nil {
+		return ""
+	}
+	return path
+}
+
+// SetCLIPath saves a custom Cisco CLI path; an empty path restores the default
+func (a *App) SetCLIPath(path string) error {
+	path = strings.TrimSpace(path)
+	if path != "" {
+		info, err := os.Stat(path)
+		if err != nil {
+			return fmt.Errorf("File not found.")
+		}
+		if info.IsDir() {
+			return fmt.Errorf("Not a file.")
+		}
+		if goruntime.GOOS != "windows" && info.Mode().Perm()&0o111 == 0 {
+			return fmt.Errorf("Not an executable.")
+		}
+		if err := vpn.VerifyCLI(path); err != nil {
+			return err
+		}
+	}
+
+	cfg := *a.ConfigManager.GetConfig()
+	cfg.CLIPath = path
+	if err := a.ConfigManager.SaveConfig(&cfg); err != nil {
+		return err
+	}
+
+	if path == "" {
+		a.Log("CLI path reset to default")
+	} else {
+		a.Log(fmt.Sprintf("CLI path set to %s", path))
+	}
+	return nil
+}
+
+func dirExists(p string) bool {
+	info, err := os.Stat(p)
+	return err == nil && info.IsDir()
 }
 
 func (a *App) CenterWindow() {

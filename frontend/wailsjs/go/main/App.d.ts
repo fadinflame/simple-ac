@@ -19,6 +19,8 @@ export function GetConfig():Promise<config.Config>;
 
 export function GetCredentials():Promise<config.Credentials>;
 
+export function GetDefaultCLIPath():Promise<string>;
+
 export function GetVPNLogs():Promise<string>;
 
 export function IsConnected():Promise<boolean>;
@@ -31,7 +33,11 @@ export function Log(arg1:string):Promise<void>;
 
 export function SaveConfig(arg1:config.Credentials,arg2:string,arg3:string):Promise<void>;
 
+export function SelectCLIPath():Promise<string>;
+
 export function SelectConfigPath():Promise<string>;
+
+export function SetCLIPath(arg1:string):Promise<void>;
 
 export function SyncStatus():Promise<boolean>;
 

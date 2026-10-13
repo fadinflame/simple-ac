@@ -3,8 +3,10 @@ package vpn
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -34,12 +36,23 @@ type Client struct {
 	lastOutput string
 	OnLog      func(string)
 
+	cliPath       func() string
 	stopReconcile chan struct{}
 }
 
-func NewClient(credentials *config.Credentials) *Client {
+// DefaultCLIPath returns the standard Cisco CLI location for the current OS.
+func DefaultCLIPath() string {
+	if runtime.GOOS == "windows" {
+		return windowsCLI
+	}
+	return unixCLI
+}
+
+// NewClient creates a client. cliPath returns a custom CLI path, or "" for the default; it may be nil.
+func NewClient(credentials *config.Credentials, cliPath func() string) *Client {
 	c := &Client{
 		creds:         credentials,
+		cliPath:       cliPath,
 		stopReconcile: make(chan struct{}),
 	}
 	go c.reconcileLoop()
@@ -115,7 +128,7 @@ func (c *Client) Connect() (bool, error) {
 
 	output, err := c.executeCommand([]string{"-s", "connect", c.creds.Server}, input, false, connectTimeout)
 	if err != nil && !strings.Contains(output, ">> state: Connected") {
-		return false, err
+		return false, userError(err, "Connection failed. See Logs for details.")
 	}
 
 	ok := strings.Contains(output, ">> state: Connected")
@@ -129,7 +142,7 @@ func (c *Client) Connect() (bool, error) {
 func (c *Client) Disconnect() (bool, error) {
 	output, err := c.executeCommand([]string{"disconnect"}, "", false, disconnectTimeout)
 	if err != nil && !strings.Contains(output, ">> state: Disconnected") {
-		return false, err
+		return false, userError(err, "Disconnect failed. See Logs for details.")
 	}
 
 	ok := strings.Contains(output, ">> state: Disconnected")
@@ -154,10 +167,56 @@ func (c *Client) Stop() {
 	}
 }
 
+// CLIError means the CLI binary couldn't be started; its message is safe to show to the user.
+type CLIError struct{ Msg string }
+
+func (e *CLIError) Error() string { return e.Msg }
+
+func startError(command string, err error) *CLIError {
+	switch {
+	case errors.Is(err, os.ErrNotExist):
+		return &CLIError{fmt.Sprintf("VPN client not found at %s. Check the path in Settings.", command)}
+	case errors.Is(err, os.ErrPermission):
+		return &CLIError{fmt.Sprintf("No permission to run %s. Check that it is an executable.", command)}
+	default:
+		return &CLIError{fmt.Sprintf("Couldn't run %s: %v", command, err)}
+	}
+}
+
+// userError keeps CLIError messages and replaces anything else with a generic one.
+func userError(err error, fallback string) error {
+	var cliErr *CLIError
+	if errors.As(err, &cliErr) {
+		return cliErr
+	}
+	return errors.New(fallback)
+}
+
+// VerifyCLI runs `status` on the binary and checks for the Cisco CLI's state output.
+func VerifyCLI(path string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), statusTimeout)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, path, "status").CombinedOutput()
+	if ctx.Err() == context.DeadlineExceeded {
+		return &CLIError{"The file didn't respond. It doesn't look like the VPN client."}
+	}
+	var exitErr *exec.ExitError
+	if err != nil && !errors.As(err, &exitErr) {
+		return startError(path, err)
+	}
+	if !strings.Contains(string(out), ">> state:") {
+		return &CLIError{"This doesn't look like the VPN command-line client."}
+	}
+	return nil
+}
+
 func (c *Client) executeCommand(args []string, input string, silent bool, timeout time.Duration) (string, error) {
-	command := unixCLI
-	if runtime.GOOS == "windows" {
-		command = windowsCLI
+	command := DefaultCLIPath()
+	if c.cliPath != nil {
+		if p := c.cliPath(); p != "" {
+			command = p
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -173,7 +232,11 @@ func (c *Client) executeCommand(args []string, input string, silent bool, timeou
 	cmd.Stderr = cmd.Stdout
 
 	if err := cmd.Start(); err != nil {
-		return "", err
+		cliErr := startError(command, err)
+		if !silent && c.OnLog != nil {
+			c.OnLog("\n[ERROR] " + cliErr.Error() + "\n")
+		}
+		return "", cliErr
 	}
 
 	var fullOutput strings.Builder

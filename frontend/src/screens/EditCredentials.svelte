@@ -86,7 +86,7 @@
         <div class="ac-content"><div class="ac-log-empty" style="color: var(--danger)">{loadError}</div></div>
     {:else}
         <form id="edit-creds" class="ac-content ac-content--scroll" on:submit|preventDefault={handleSave}>
-            <Group footer="Group is the number of the connection profile in AnyConnect's list, usually 0.">
+            <Group footer="Group is the number of the connection profile in the client's list, usually 0.">
                 <FieldRow label="Server" forId="server">
                     <TextField
                         id="server"

@@ -104,10 +104,10 @@
         <form id="setup-step-1" class="ac-content" style="overflow-y: auto" on:submit|preventDefault={nextStep}>
             <div class="ac-assist-head">
                 <h1 class="ac-assist-title">Connect to your VPN</h1>
-                <p class="ac-assist-sub">SimpleAC passes these to the AnyConnect command-line client.</p>
+                <p class="ac-assist-sub">SimpleAC passes these to the VPN command-line client.</p>
             </div>
 
-            <Group footer="Group is the number of the connection profile in AnyConnect's list, usually 0.">
+            <Group footer="Group is the number of the connection profile in the client's list, usually 0.">
                 <FieldRow label="Server" forId="server">
                     <TextField
                         id="server"
