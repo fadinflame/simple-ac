@@ -29,8 +29,8 @@
     let account = "";
 
     const glassModes = [
-        { value: "clear", label: "Clear" },
-        { value: "tinted", label: "Tinted" },
+        { value: "clear", label: "Light" },
+        { value: "tinted", label: "Window" },
     ];
 
     const themes = [
@@ -96,7 +96,7 @@
             <Row label="Theme">
                 <Segmented small label="Theme" items={themes} bind:value={$theme} />
             </Row>
-            <Row label="Toolbar" sub="Tinted is easier to read over busy content">
+            <Row label="Toolbar">
                 <Segmented small label="Toolbar" items={glassModes} bind:value={$glass} />
             </Row>
         </Group>
