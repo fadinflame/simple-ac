@@ -143,6 +143,9 @@ flowchart LR
 
 ## 10. Testing
 
-- Go tests: `go test ./vpn/` (add `-race`). Tests for the `main` package need the macOS CGO flags and tag from the VS Code tasks: `CGO_CFLAGS="-mmacosx-version-min=10.13" CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13" go test -tags dev .` (without them linking fails with `_OBJC_CLASS_$_UTType`).
-- Tests fake the Cisco CLI with `#!/bin/sh` scripts in `t.TempDir()` and are skipped on Windows. `app_test.go` isolates config by `t.Setenv("HOME", …)`. The `VerifyCLI` timeout path is untested (`statusTimeout` is a 5s const).
+- Go tests: `go test -race ./...` covers `vpn`, `config`, `security`, `updater` and the `main` package (`app_test.go`, `app_flow_test.go`). Tests for the `main` package need the macOS CGO flags and tag from the VS Code tasks: `CGO_CFLAGS="-mmacosx-version-min=10.13" CGO_LDFLAGS="-framework UniformTypeIdentifiers -mmacosx-version-min=10.13" go test -tags dev .` (without them linking fails with `_OBJC_CLASS_$_UTType`), and `frontend/dist` must exist (it is embedded; gitignored, produced by `wails build` / `npm run build`).
+- Tests fake the Cisco CLI with `#!/bin/sh` scripts in `t.TempDir()` and are skipped on Windows. Never let a test reach the real CLI: App tests point `Config.CLIPath` at a fake before anything starts a `vpn.Client` (see `newUnlockableApp`). Tests isolate config by `t.Setenv("HOME", …)` (`APPDATA` on Windows). The `VerifyCLI` timeout path is untested (`statusTimeout` is a 5s const).
+- `updater.latestReleaseURL` is a package var so tests can point it at `httptest`.
+- When a fake CLI is shared with the background `status` poll (`reconcileLoop`), answer `status` before recording args/stdin, otherwise the poll overwrites them.
+- CI ([.github/workflows/build.yml](.github/workflows/build.yml)) runs `go test -tags desktop,production [-race] ./...` after `wails build` on all three OSes (macOS adds `CGO_LDFLAGS=-framework UniformTypeIdentifiers`; `-race` is off on Windows). Workflow triggers include `develop`.
 - No frontend tests exist.

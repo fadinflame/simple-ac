@@ -17,9 +17,12 @@ type Release struct {
 	PublishedAt string `json:"published_at"`
 }
 
+// latestReleaseURL is a variable so tests can point it at a local server.
+var latestReleaseURL = "https://api.github.com/repos/fadinflame/simple-ac/releases/latest"
+
 func CheckForUpdates(currentVersion string) (*Release, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/fadinflame/simple-ac/releases/latest", nil)
+	req, err := http.NewRequest("GET", latestReleaseURL, nil)
 	if err != nil {
 		return nil, err
 	}

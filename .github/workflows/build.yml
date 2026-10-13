@@ -2,11 +2,11 @@ name: Build SimpleAC
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop" ]
     tags:
       - 'v*'
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master", "develop" ]
 
 jobs:
   build:
@@ -69,6 +69,13 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
           # Run Wails build with ldflags
           wails build -ldflags "-X 'main.Version=${{ steps.version.outputs.VERSION }}'"
+
+      # After the build: the main package embeds frontend/dist, which wails build produces.
+      - name: Run Tests
+        shell: bash
+        env:
+          CGO_LDFLAGS: ${{ matrix.os == 'macos-latest' && '-framework UniformTypeIdentifiers' || '' }}
+        run: go test -tags desktop,production ${{ matrix.os != 'windows-latest' && '-race' || '' }} ./...
 
       - name: Package Artifacts (Windows)
         if: matrix.os == 'windows-latest'
