@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/fadinflame/simple-ac/config"
@@ -113,14 +114,16 @@ func TestClientReadsCLIPathOnEveryCommand(t *testing.T) {
 	connectedCLI := writeScript(t, "vpn", `echo ">> state: Connected"`, 0o755)
 	disconnectedCLI := writeScript(t, "vpn", `echo ">> state: Disconnected"`, 0o755)
 
-	current := connectedCLI
-	c := newTestClient(func() string { return current })
+	// The background reconcile loop also calls the closure, so access must be synchronised.
+	var current atomic.Value
+	current.Store(connectedCLI)
+	c := newTestClient(func() string { return current.Load().(string) })
 	defer c.Stop()
 
 	if ok, _ := c.SyncStatus(); !ok {
 		t.Fatal("expected Connected from the first CLI")
 	}
-	current = disconnectedCLI
+	current.Store(disconnectedCLI)
 	if ok, _ := c.SyncStatus(); ok {
 		t.Error("expected Disconnected after the path changed")
 	}
