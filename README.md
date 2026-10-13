@@ -1,115 +1,152 @@
+<div align="center">
 
 # SimpleAC
 
-**SimpleAC** — это легковесная открытая графическая оболочка (wrapper) для командной строки **Cisco AnyConnect**. Она создана для того, чтобы сделать использование VPN более удобным, добавляя удобное подключение в один клик с шифрованием вашей конфигурации.
+**A calm, native-feeling desktop app for the Cisco AnyConnect CLI.**
+One click to connect. Credentials encrypted. TOTP filled in for you.
 
+[![Release](https://img.shields.io/github/v/release/fadinflame/simple-ac?style=flat-square)](https://github.com/fadinflame/simple-ac/releases/latest)
+[![Build](https://img.shields.io/github/actions/workflow/status/fadinflame/simple-ac/build.yml?style=flat-square)](https://github.com/fadinflame/simple-ac/actions)
+[![License](https://img.shields.io/github/license/fadinflame/simple-ac?style=flat-square)](LICENSE)
+![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=flat-square)
+![Built with](https://img.shields.io/badge/Go%20%2B%20Wails%20%2B%20Svelte-00ADD8?style=flat-square)
 
-<p align="center">
-  <img src="assets/main.png" alt="SimpleAC Main Screen" width="600">
-</p>
+English · [Русский](README.ru.md)
 
-<p align="center">
-  <a href="SCREENSHOTS.md"><b>View all screenshots / Посмотреть все скриншоты</b></a>
-</p>
+<img src="assets/main.png" alt="SimpleAC main screen" width="420">
 
-
-[Russian](#russian) | [English](#english)
+</div>
 
 ---
 
-<a name="english"></a>
-## English
+## Overview
 
-**SimpleAC** is a lightweight open-source GUI wrapper for the **Cisco AnyConnect CLI**. It is designed to make VPN usage more convenient and one-click connection with full encryption of your configuration (AES-256).
+SimpleAC is a lightweight, open-source GUI for the **Cisco AnyConnect command-line client**. It does not implement any VPN protocol itself: it drives the official CLI that is already installed on your machine and presents it in a small, focused window.
 
+Your VPN details are stored in a single file encrypted with a master password, so connecting is as simple as unlocking the app and pressing **Connect**.
 
+## Features
 
-### ⚖️ Legal Disclaimer
-- **Not a modification**: SimpleAC does NOT modify, patch, or interfere with the Cisco AnyConnect binary or its internal protocols.
-- **Wrapper only**: This application acts solely as a GUI shell that executes standard CLI commands (e.g., `vpn connect`, `vpn disconnect`) provided by the official Cisco AnyConnect installation.
-- **No affiliation**: SimpleAC is not affiliated with, endorsed by, or sponsored by Cisco Systems, Inc. "AnyConnect" is a trademark of Cisco Systems, Inc.
-- **"As Is"**: The software is provided "as is", without warranty of any kind. Use it at your own risk.
+**Connection**
+- One-click connect and disconnect, with a live connection timer.
+- Automatic status sync: the app notices when the VPN state changes outside of it.
+- Clear, human-readable errors when the CLI is missing, not executable, or the connection fails.
 
-### 🚀 Features
-- **2FA Support**: Built-in TOTP (Google Authenticator) support.
-- **Connection Timer**: See exactly how long you've been connected.
-- **Lightweight**: Minimal resource usage compared to the official GUI.
+**Security**
+- AES-256-GCM encryption with a key derived from your master password (PBKDF2-SHA256, 100,000 iterations).
+- The master password is never stored. It is used only to derive the key when credentials are loaded or saved.
+- **Lock** wipes credentials from memory and disconnects, without quitting the app.
+- Secrets are never written to disk in plain text. Only non-sensitive settings are stored unencrypted.
 
-### 🛠 Installation
-SimpleAC requires the official Cisco AnyConnect client to be installed on your system.
+**Two-factor authentication**
+- Built-in TOTP generator (Google Authenticator compatible): paste your OTP secret once, and the code is generated and submitted automatically on every connect.
 
-#### From Releases (Recommended)
-1. Go to the [Releases](https://github.com/fadinflame/simple-ac/releases) page.
-2. Download the latest version for your OS (macOS or Windows).
-3. Run the application.
+**Everyday comfort**
+- Built-in log viewer with separate tabs for raw VPN client output and app events.
+- Edit your credentials in place, with password and OTP fields masked until you reveal them.
+- Custom CLI location with validation, for non-standard installs.
+- Light, dark, or system theme, and a choice of toolbar material.
+- Keyboard shortcuts: `Cmd/Ctrl + ,` for Settings, `Cmd/Ctrl + L` to lock.
+- Manual update check against GitHub Releases.
+- Small footprint compared to the official client.
 
-#### Building from Source
-If you want to build it yourself, you'll need [Go](https://go.dev/) and [Wails](https://wails.io/) installed.
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/password.png" alt="Unlock" width="260"><br><sub>Unlock with your master password</sub></td>
+    <td align="center"><img src="assets/main.png" alt="Main" width="260"><br><sub>Connect with one click</sub></td>
+    <td align="center"><img src="assets/settings.png" alt="Settings" width="260"><br><sub>Settings</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/setup1.png" alt="Setup, step 1" width="260"><br><sub>Setup: VPN details</sub></td>
+    <td align="center"><img src="assets/setup2.png" alt="Setup, step 2" width="260"><br><sub>Setup: encryption</sub></td>
+    <td align="center"><img src="assets/logs.png" alt="Logs" width="260"><br><sub>Live logs</sub></td>
+  </tr>
+</table>
+
+Full-size images: [SCREENSHOTS.md](SCREENSHOTS.md).
+
+## Requirements
+
+- The **official Cisco AnyConnect client** (with its command-line tool) installed on your system.
+- A VPN profile where the login prompts come in the order **group, username, password, (optional) one-time code**. SimpleAC feeds the CLI exactly this sequence.
+
+Default CLI locations:
+
+| OS | Path |
+|---|---|
+| macOS / Linux | `/opt/cisco/anyconnect/bin/vpn` |
+| Windows | `C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe` |
+
+Installed somewhere else? Point SimpleAC to it in **Settings › VPN client**. The path is verified before it is saved.
+
+## Installation
+
+### From Releases (recommended)
+
+1. Open the [Releases](https://github.com/fadinflame/simple-ac/releases/latest) page.
+2. Download the build for your OS: macOS (`.zip`), Windows (`.zip`), or Linux (`.tar.gz`).
+3. Unpack and run.
+
+### Build from source
+
+You need [Go](https://go.dev/), [Node.js](https://nodejs.org/) and the [Wails v2 CLI](https://wails.io/).
+
 ```bash
 git clone https://github.com/fadinflame/simple-ac.git
 cd simple-ac
 wails build
 ```
 
-### ⚙️ Configuration
-The app expects the Cisco AnyConnect CLI to be located at:
-- **macOS/Linux**: `/opt/cisco/anyconnect/bin/vpn`
-- **Windows**: `C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe`
+The binary is placed in `build/bin/`. For live development use `wails dev`.
 
-In the settings, provide your:
-- Server Address
-- Group
-- Username & Password
-- (Optional) TOTP Secret for 2FA
+## Getting started
 
----
+1. **Launch SimpleAC.** On first run a two-step setup opens.
+2. **Enter your VPN details:** server, username, password, group, and optionally the TOTP secret.
+3. **Choose where to save the encrypted file** and set a master password.
+4. From then on, unlock with the master password and press **Connect**.
 
-<a name="russian"></a>
-## Russian (RU)
+## Good to know
 
-**SimpleAC** — это легкая графическая оболочка (wrapper) с открытым исходным кодом для **Cisco AnyConnect CLI**. Она упрощает управление VPN, предоставляя удобное подключение в один клик. Основной упор сделан на простоту использования и полную безопасность данных: ваша конфигурация и учетные данные защищены шифрованием **AES-256**.
+- **There is no password recovery.** If you forget the master password, the encrypted file cannot be opened. Set up again and re-enter your VPN details.
+- **Back up the credentials file** if it matters to you. Its location is shown during setup; it is a single self-contained file.
+- **"Set Up Again" does not delete anything.** Saving to the same path overwrites the old file; a different path leaves the old one on disk.
+- **TOTP needs an accurate clock.** If the server rejects codes, check that your system time is synchronized.
+- **Timeouts are short by design.** A connection attempt is limited to 10 seconds, so slow servers may need a retry. Details are always in the Logs screen.
+- **The window has a fixed size** and is not resizable.
+- **Updates are manual.** Use *Check for Updates* in Settings; SimpleAC opens the release page rather than patching itself.
+- **Changing the encryption parameters in a future version would make older files unreadable.** Keep this in mind when upgrading across major changes.
 
+## Security model
 
+| Item | Where it lives | Protection |
+|---|---|---|
+| Server, username, password, group, OTP secret | A file you choose | AES-256-GCM, key from PBKDF2-SHA256 (100k iterations) |
+| Master password | Nowhere | Used only to derive the key, never persisted |
+| Settings (credentials file path, CLI path) | `~/.simple-ac/config.json` on macOS/Linux, `%APPDATA%\simple-ac\config.json` on Windows | Plain JSON, file mode `0600` |
 
-### ⚖️ Юридическая информация
-- **Не модификация**: SimpleAC НЕ модифицирует, не патчит и не вмешивается в работу бинарных файлов Cisco AnyConnect или их внутренние протоколы.
-- **Только обертка**: Это приложение работает исключительно как графическая оболочка, вызывающая стандартные команды CLI (например, `vpn connect`, `vpn disconnect`), предоставляемые официальной установкой Cisco AnyConnect.
-- **Никакой аффилиации**: SimpleAC не связан, не поддерживается и не спонсируется компанией Cisco Systems, Inc. "AnyConnect" является торговой маркой Cisco Systems, Inc.
-- **"Как есть"**: Программное обеспечение предоставляется по лицензии MIT "как есть", без каких-либо гарантий. Используйте на свой страх и риск.
+File layout: `salt (16 bytes) || nonce (12 bytes) || ciphertext`.
 
-### 🚀 Особенности
-- **Поддержка 2FA**: Встроенная поддержка TOTP (Google Authenticator).
-- **Таймер подключения**: Точно отображает время вашего нахождения в сети.
-- **Легкость**: Минимальное потребление ресурсов по сравнению с официальным GUI.
+## How it works
 
-### 🛠 Установка
-Для работы SimpleAC необходимо, чтобы в вашей системе уже был установлен официальный клиент Cisco AnyConnect.
-
-#### Из разделов Releases (Рекомендуется)
-1. Перейдите на страницу [Releases](https://github.com/fadinflame/simple-ac/releases).
-2. Скачайте последнюю версию для вашей ОС (macOS или Windows).
-3. Запустите приложение.
-
-#### Сборка из исходного кода
-Если вы хотите собрать приложение самостоятельно, вам понадобятся установленные [Go](https://go.dev/) и [Wails](https://wails.io/).
-```bash
-git clone https://github.com/fadinflame/simple-ac.git
-cd simple-ac
-wails build
+```mermaid
+flowchart LR
+    UI[Svelte UI] <--> Go[Go backend]
+    Go --> Crypto[AES-256-GCM storage]
+    Go -->|stdin / stdout| CLI[Cisco AnyConnect CLI]
 ```
 
-### ⚙️ Конфигурация
-Приложение ожидает, что CLI Cisco AnyConnect находится по путям:
-- **macOS/Linux**: `/opt/cisco/anyconnect/bin/vpn`
-- **Windows**: `C:\Program Files (x86)\Cisco\Cisco AnyConnect Secure Mobility Client\vpncli.exe`
+SimpleAC runs `vpn -s connect <server>` and writes the login answers to its standard input. Connection state is read from the CLI's `status` output and re-checked in the background every 30 seconds.
 
-В настройках укажите:
-- Адрес сервера (Server Address)
-- Группу (Group)
-- Имя пользователя и пароль (Username & Password)
-- (Опционально) TOTP Secret для 2FA
+## Legal
 
----
+- **Not a modification.** SimpleAC does not modify, patch or interfere with the Cisco AnyConnect binaries or protocols.
+- **Wrapper only.** It runs standard commands (`vpn connect`, `vpn disconnect`, `vpn status`) of the official installation.
+- **No affiliation.** SimpleAC is not affiliated with, endorsed by, or sponsored by Cisco Systems, Inc. "Cisco" and "AnyConnect" are trademarks of Cisco Systems, Inc.
+- **"As is".** The software is provided without warranty of any kind. Use it at your own risk.
 
-### 📄 License
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+## License
+
+Released under the [MIT License](LICENSE).
